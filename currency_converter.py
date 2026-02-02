@@ -58,6 +58,9 @@ class CurrencyConverterApp(tkinter.Tk):
         # Ustaw domyślne wartości dla list rozwijalnych (komponentów `Combobox` umożliwiających wybór waluty)
         self.currency_from_combobox.set("PLN")
         self.currency_to_combobox.set("EUR")
+        # Przycisk odpowiadający za przeliczenie kwoty z jednej waluty na drugą. Po jego kliknięciu dokona się również walidacja danych wprowadzonych do pola z kwotą oraz pól `Combobox`
+        self.convert_button = ttk.Button(self, text="Konwertuj", width=20)
+
     # Metoda do definiowania layoutu komponentów (widżetów) okna aplikacji
     def _layout_widgets(self):
         self.main_heading.pack(pady=(50, 40))
@@ -66,7 +69,8 @@ class CurrencyConverterApp(tkinter.Tk):
         self.currency_from_label.pack(pady=5)
         self.currency_from_combobox.pack(pady=(5, 30))
         self.currency_to_label.pack(pady=5)
-        self.currency_to_combobox.pack(pady=5)
+        self.currency_to_combobox.pack(pady=(5, 40))
+        self.convert_button.pack(pady=(5, 30))
 
 if __name__ == "__main__":
     app = CurrencyConverterApp()
