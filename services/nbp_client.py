@@ -19,9 +19,9 @@ class RatesClient:
         # Zwróć gotowe dane w postaci słownika zawierającego kursy walut (kody ich nazw oraz średnia cena)
         return rates
 
-# Kod tylko na potrzeby testowania poprawności pobierania danych z API
+# Kod tylko na potrzeby testowania poprawności pobierania danych z NBP Web API
 if __name__ == "__main__":
     client = RatesClient()
     rates = client.fetch_table()
-    print("OK. Pobrano tabelę:")
-    print("rates:", rates)
+    print("Testuję pobieranie danych z tabeli...")
+    print("Rates:\n", rates)

@@ -2,9 +2,13 @@ import os # moduł dający programowi dostęp do środowiska systemu operacyjneg
 import sys # moduł udostępniający programowi informacje o konkretnym uruchomieniu programu, tj, w jaki sposób i na jakiej platformie systemu operacyjnego program został uruchomiony
 import tkinter # biblioteka `tkinter`
 from tkinter import ttk # podmoduł `ttk` z biblioteki `tkinter` zawierający nowocześniejsze widżety (komponenty) UI (przyciski, listy rozwijalne itd.), które zapewniają spójny i natywny wygląd aplikacji na różnych systemach operacyjnych
-from tkinter import messagebox # okno dialogowe
+from tkinter import messagebox # podmoduł dodający okno dialogowe na potrzeby wyświetlania użytkownikowi komunikatów o błędach
+from decimal import Decimal # moduł decimal zapewniający możliwość zamiany ciągów znaków na wartości liczbowe o większej precyzji
+from decimal import InvalidOperation # `InvalidOperation` to pakiet modułu `decimal` umożliwiający obsługę wyjątku `InvalidOperation` w bloku `try/except`
 # Zaimportuj klasę definiującą zachowanie i działanie klienta HTTP
-from nbp_client import RatesClient
+from services.nbp_client import RatesClient
+# Zaimportuj metodę pomocniczą służącą do wykonania matematycznej kalkulacji kwoty
+from utilities.converter_logic import calculate_exchange
 # Zdefiniuj okno UI aplikacji
 class CurrencyConverterApp(tkinter.Tk):
     def __init__(self):
@@ -31,7 +35,7 @@ class CurrencyConverterApp(tkinter.Tk):
         )
     # Metoda do konfiguracji okna aplikacji
     def _configure_window(self):
-        self.geometry("800x800+300+150") # Ustal wymiary okna UI aplikacji oraz jego położenie na ekranie
+        self.geometry("1000x800+300+150") # Ustal wymiary okna UI aplikacji oraz jego położenie na ekranie
         self.title("Konwerter walut") # Nadaj oknu aplikacji tytuł
         self.resizable(False, False) # Zablokuj możliwość zmiany wymiarów okna aplikacji
     # Metoda służąca do pobrania kursów walut i ich zdefiniowania w warstwie UI
@@ -73,12 +77,56 @@ class CurrencyConverterApp(tkinter.Tk):
         self.currency_from_combobox.set("PLN")
         self.currency_to_combobox.set("EUR")
         # Przycisk odpowiadający za przeliczenie kwoty z jednej waluty na drugą. Po jego kliknięciu dokona się również walidacja danych wprowadzonych do pola z kwotą oraz pól `Combobox`
-        self.convert_button = ttk.Button(self, text="Konwertuj", width=20, command=self._convert)
+        self.convert_button = ttk.Button(self, text="Konwertuj", width=20, command=self._validate_user_input)
         # Widżet wyświetlający wynik konwersji
         self.result_label = ttk.Label(
             self,
             text = "Wynik: -"
         )
+    # Metoda "event handler", która wywoła się w reakcji na naciśnięcie przycisku "Konwertuj"
+    def _validate_user_input(self):
+        """Metoda wewnętrzna klasy, która przyjmie dane wejściowe od użytkownika: kwotę, walutę \"Z\" i walutę \"Do\".
+           Następnie dokona walidacji danych wejściowych i w przypadku pomyślnego przejścia walidacji dokona konwersji wprowadzonej kwoty w walucie \"Z\" do waluty \"Do\"
+        """
+        amount_str = self.entry_amount.get().replace(",", ".")
+        currency_from = self.currency_from_combobox.get()
+        currency_to = self.currency_to_combobox.get()
+        # Walidacja: Czy użytkownik wprowadził liczbę? Jeśli nie, poproś użytkownika o wprowadzenie liczby dodatniej.
+        # Następnie zakończ działanie funkcji
+        try:
+            amount = Decimal(amount_str)
+            # Jeżeli użytkownik wprowadził liczbę ujemną, rzuć wyjątek `ValueError`
+            if amount < 0:
+                raise ValueError("Kwota nie może być ujemna.")
+        except (InvalidOperation, ValueError):
+            messagebox.showerror("Niepoprawna wartość", "Wprowadź kwotę jako liczbę dodatnią.")
+            return
+        # Walidacja: Czy zostały wybrane te same waluty w obu widżetach `Combobox`?
+        if currency_from == currency_to:
+            messagebox.showinfo("Te same waluty", "Wybrano dwie takie same waluty. Konwersja nie jest konieczna.")
+            # Jeżeli użytkownik wybrał dwie te same waluty, wyświetl informację o wyniku konwersji jak na przykład "1 PLN = 1 PLN"
+            # Następnie zakończ działanie funkcji
+            self.result_label.config(text = f"Wynik: {amount:.2f} {currency_from} = {amount:.2f} {currency_to}")
+            return
+        # Jeśli walidacja przeszła pomyślnie, przekaż poprawne dane wejściowe do osobnej funkcji, która zajmie się obsługą logiki konwersji
+        self._perform_conversion(amount, currency_from, currency_to)
+
+    # Metoda służąca do wywołania logiki konwersji
+    def _perform_conversion(self, amount, currency_from, currency_to):
+        """
+        Metoda wewnętrzna klasy do wykonywania faktycznych obliczeń po walidacji danych wejściowych.
+        """
+        exchange_rate_from = self.exchange_rates[currency_from]
+        exchange_rate_to = self.exchange_rates[currency_to]
+        """
+        Wywołaj funkcję z pliku `utilities.converter_logic`
+        Pobierz wynik kalkulacji zwrócony z funkcji `calculate_exchange`
+        """
+        calculation_result = calculate_exchange(amount, exchange_rate_from, exchange_rate_to)
+        # Wyświetl na ekranie UI wynik kalkulacji
+        self.result_label.config(text = f"Wynik: {amount:.2f} {currency_from} = {calculation_result} {currency_to}")
+
+
     # Metoda do definiowania layoutu komponentów (widżetów) okna aplikacji
     def _layout_widgets(self):
         self.main_heading.pack(pady=(50, 40))
