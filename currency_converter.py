@@ -139,8 +139,15 @@ class CurrencyConverterApp(tkinter.Tk):
         self.convert_button.pack(pady=(5, 30))
         self.result_label.pack(pady=(10, 30))
 
+"""
+Spróbuj uruchomić aplikację za pomocą komendy `python currency_converter.py` (lub `python3 currency_converter.py`).
+W przypadku wystąpienia błędu podczas startu aplikacji wyświetl w konsoli komunikat z informacjami o błędzie
+""" 
 if __name__ == "__main__":
-    app = CurrencyConverterApp()
-    app.mainloop() # Uruchom aplikację
+    try:
+        app = CurrencyConverterApp()
+        app.mainloop() # Uruchom aplikację
+    except Exception as exception:
+        print("Wystąpił błąd podczas startu aplikacji:\n", exception)
 
 print(sys.version) # Wypisz, z poziomu kodu, dokładną wersję interpretera Pythona wraz z datą kompilacji oraz nazwą kompilatora

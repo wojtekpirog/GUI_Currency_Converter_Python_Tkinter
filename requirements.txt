@@ -1,0 +1,2 @@
+# Biblioteka z poza biblioteki standardowej Pythona służąca do wysyłania zapytań HTTP do zewnętrznych API
+requests>=2.25.1
